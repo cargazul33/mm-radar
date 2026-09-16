@@ -14,8 +14,11 @@
   <nav class="nav">
     <button data-view="hoy" class="active">HOY</button>
     <button data-view="ops">Oportunidades</button>
+    <button data-view="cot">Cotizaciones</button>
     <button data-view="caja">Caja</button>
     <button data-view="cob">Cobranzas</button>
+    <button data-view="ind">Indicadores</button>
+    <button data-view="proy">Proyecciones</button>
     <button data-view="nueva">+ Opp</button>
     <button data-view="detalle" class="hidden">Detalle</button>
   </nav>
@@ -30,7 +33,7 @@
       </div>
       <div class="card" style="margin-top:10px">
         <h3>Metas aspiracionales (progreso solo con datos reales)</h3>
-        <div class="muted">Ventas $40M / mes</div>
+        <div class="muted">Ventas $30–40M / mes · neto $10M (display only)</div>
         <div id="meta-ventas-label" class="muted"></div>
         <div class="progress"><span id="bar-ventas"></span></div>
         <div class="muted" style="margin-top:8px">Ganancia $10M / mes</div>
@@ -52,10 +55,6 @@
         <ul id="bottleneck-sec"></ul>
       </div>
       <div class="card" style="margin-top:10px">
-        <h3>Proyecciones · ESTIMACIÓN</h3>
-        <div id="proy-list"></div>
-      </div>
-      <div class="card" style="margin-top:10px">
         <h3>Alertas</h3>
         <div class="list" id="alert-list"></div>
       </div>
@@ -67,6 +66,14 @@
 
     <section id="view-detalle" class="view hidden">
       <div id="detalle"></div>
+    </section>
+
+    <section id="view-cot" class="view hidden">
+      <div class="card">
+        <h3>Cotizaciones</h3>
+        <div class="warnbox">Nunca cuentan como caja. Markup default 1.90. Sin auto-presentación.</div>
+        <div class="list" id="cot-list"></div>
+      </div>
     </section>
 
     <section id="view-caja" class="view hidden">
@@ -96,6 +103,17 @@
 
     <section id="view-cob" class="view hidden">
       <div class="card"><h3>Cobranzas</h3><div class="list" id="cob-list"></div></div>
+    </section>
+
+    <section id="view-ind" class="view hidden">
+      <div class="card"><h3>Indicadores</h3><div id="ind-grid" class="grid"></div><div class="muted" id="ind-note"></div></div>
+    </section>
+
+    <section id="view-proy" class="view hidden">
+      <div class="card">
+        <h3>Proyecciones · ESTIMACIÓN</h3>
+        <div id="proy-list"></div>
+      </div>
     </section>
 
     <section id="view-nueva" class="view hidden">

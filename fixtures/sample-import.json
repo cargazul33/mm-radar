@@ -1,20 +1,27 @@
 {
+  "demo": true,
+  "DEMO": true,
+  "note": "DEMO ONLY — no usar como datos de producción. Solo valida el import JSON.",
   "opportunities": [
     {
       "external_id": "DEMO-100",
-      "source": "MANUAL",
-      "title": "Ejemplo IT — sin precios inventados",
+      "source": "DEMO",
+      "title": "[DEMO] Ejemplo IT — sin precios inventados",
       "organism": "DEMO",
       "rubros": "informática",
+      "source_url": "https://example.com/demo",
       "url": "https://example.com/demo",
       "pliego_url": "https://example.com/demo-pliego.pdf",
       "verification": "NO VERIFICADO",
-      "pipeline": "NUEVA"
+      "pipeline": "NUEVA",
+      "notes": "DEMO fixture — STOCK_NO_VERIFICADO / PRECIO_NO_VERIFICADO"
     },
     {
       "external_id": "16514",
-      "title": "Hard-skip test row",
-      "source": "CODINEU"
+      "source": "CODINEU",
+      "title": "[DEMO] Hard-skip test row — never actionable",
+      "source_url": "https://codi.neuquen.gob.ar/",
+      "url": "https://codi.neuquen.gob.ar/"
     }
   ]
 }

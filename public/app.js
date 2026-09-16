@@ -3,7 +3,11 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
 const money = (n) => {
   if (n == null || Number.isNaN(Number(n))) return "NO VERIFICADO";
-  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n));
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(Number(n));
 };
 const pct = (n) => `${Math.round((Number(n) || 0) * 100)}%`;
 
@@ -24,12 +28,19 @@ function showView(name) {
   $$(".nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
 }
 
+function bandClass(band) {
+  if (band === "ATACAR") return "ok";
+  if (band === "COTIZAR") return "";
+  if (band === "REVISAR") return "warn";
+  if (band === "DESCARTAR") return "bad";
+  return "";
+}
+
 async function loadHoy() {
-  const [hoy, tasks, bn, proy, alerts] = await Promise.all([
+  const [hoy, tasks, bn, alerts] = await Promise.all([
     api("/api/hoy"),
     api("/api/que-hago-hoy"),
     api("/api/bottleneck"),
-    api("/api/proyecciones"),
     api("/api/alertas"),
   ]);
   $("#kpi-capital").textContent = money(hoy.capital_operativo_real);
@@ -66,17 +77,6 @@ async function loadHoy() {
   $("#bottleneck-text").textContent = bn.text;
   $("#bottleneck-sec").innerHTML = (bn.secondary || []).map((s) => `<li>${s}</li>`).join("");
 
-  const pl = $("#proy-list");
-  pl.innerHTML = `<div class="warnbox"><strong>${proy.label}</strong> — ${proy.disclaimer}</div>`;
-  for (const s of proy.scenarios || []) {
-    const d = document.createElement("div");
-    d.className = "row";
-    d.innerHTML = `<div class="t">${s.scenario.toUpperCase()} · ${s.label}</div>
-      <div>Ventas: ${money(s.ventas)} · Ganancia: ${money(s.ganancia)}</div>
-      <div class="muted">${s.note}</div>`;
-    pl.appendChild(d);
-  }
-
   const al = $("#alert-list");
   al.innerHTML = "";
   if (!alerts.alertas?.length) al.innerHTML = `<div class="muted">Sin alertas abiertas.</div>`;
@@ -97,22 +97,33 @@ async function loadOps() {
     const d = document.createElement("div");
     d.className = "row";
     const band = (() => {
-      try { return JSON.parse(o.mm_score_json || "{}").band || ""; } catch { return ""; }
+      try {
+        return JSON.parse(o.mm_score_json || "{}").band || "";
+      } catch {
+        return "";
+      }
     })();
     d.innerHTML = `
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
         <div class="t">#${o.external_id} · score ${o.mm_score ?? "—"}</div>
-        <span class="badge ${band}">${band || (o.skipped ? "SKIP" : "—")}</span>
+        <span class="badge ${bandClass(band)} ${band}">${band || (o.skipped ? "SKIP" : "—")}</span>
       </div>
       <div>${o.title || ""}</div>
       <div class="muted">${o.organism || ""} · ${o.rubros || ""}</div>
       <div class="muted">Cierre: ${o.cierre_at || "NO VERIFICADO"} · ${o.pipeline} · ${o.stock_label || ""}</div>
       <div class="actions">
-        <a class="btn ghost" href="${o.source_url || o.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">URL oficial</a>
-        ${o.pliego_descarga ? `<a class="btn primary" href="${o.pliego_descarga}" target="_blank" rel="noopener" onclick="event.stopPropagation()">DESCARGAR PLIEGO</a>` : `<span class="muted">Sin pliego descargable</span>`}
+        <a class="btn ghost" href="${o.source_url || o.url || "#"}" target="_blank" rel="noopener" onclick="event.stopPropagation()">URL oficial</a>
+        ${
+          o.pliego_descarga
+            ? `<a class="btn primary" href="${o.pliego_descarga}" target="_blank" rel="noopener" onclick="event.stopPropagation()">DESCARGAR PLIEGO</a>`
+            : `<span class="muted">Sin pliego descargable</span>`
+        }
       </div>`;
     d.onclick = () => openOpp(o.id);
     list.appendChild(d);
+  }
+  if (!(data.oportunidades || []).length) {
+    list.innerHTML = `<div class="muted">Sin oportunidades. Importá desde mm-ai-commerce o cargá manual con URL oficial.</div>`;
   }
 }
 
@@ -129,7 +140,7 @@ async function openOpp(id) {
       <div class="muted">${o.organism} · ${o.rubros}</div>
       <div style="margin-top:8px">Pipeline: <strong>${o.pipeline}</strong>
         · Score: <strong>${o.mm_score ?? "—"}</strong>
-        <span class="badge ${score.band || ""}">${score.band || ""}</span>
+        <span class="badge ${bandClass(score.band)}">${score.band || ""}</span>
       </div>
       <div class="actions">
         <a class="btn ghost" href="${d.source_url}" target="_blank" rel="noopener">URL oficial</a>
@@ -150,19 +161,53 @@ async function openOpp(id) {
     </div>
     <div class="card" style="margin-top:10px">
       <h3>Ítems</h3>
-      <div class="list">${(d.items || []).map((it) => `
+      <div class="list">${
+        (d.items || [])
+          .map(
+            (it) => `
         <div class="row"><div class="t">#${it.line_no} ${it.description}</div>
         <div class="muted">${it.qty} ${it.unit} · ${it.brand} ${it.model}</div>
-        <div class="muted">Costo: ${it.unit_cost != null ? money(it.unit_cost) : "—"} · ${it.cost_label}</div></div>`).join("") || "<div class='muted'>Sin ítems</div>"}</div>
+        <div class="muted">Costo: ${it.unit_cost != null ? money(it.unit_cost) : "—"} · ${it.cost_label}</div></div>`
+          )
+          .join("") || "<div class='muted'>Sin ítems</div>"
+      }</div>
     </div>
     <div class="card" style="margin-top:10px">
       <h3>Proveedores</h3>
       <div><strong>EXACTO</strong> (${d.suppliers.exacto.length})</div>
-      ${(d.suppliers.exacto || []).map(s => `<div class="row"><div class="t">${s.supplier_name}</div><div class="muted">${s.product_label} · ${s.unit_cost != null ? money(s.unit_cost) : "PRECIO_NO_VERIFICADO"} · ${s.why}</div></div>`).join("") || "<div class='muted'>ninguno</div>"}
+      ${
+        (d.suppliers.exacto || [])
+          .map(
+            (s) =>
+              `<div class="row"><div class="t">${s.supplier_name}</div><div class="muted">${s.product_label} · ${
+                s.unit_cost != null ? money(s.unit_cost) : "PRECIO_NO_VERIFICADO"
+              } · ${s.why}</div></div>`
+          )
+          .join("") || "<div class='muted'>ninguno</div>"
+      }
       <div style="margin-top:8px"><strong>EQUIVALENTE</strong> (${d.suppliers.equivalente.length})</div>
-      ${(d.suppliers.equivalente || []).map(s => `<div class="row"><div class="t">${s.supplier_name}</div><div class="muted">${s.product_label} · ${s.unit_cost != null ? money(s.unit_cost) : "PRECIO_NO_VERIFICADO"}</div></div>`).join("") || "<div class='muted'>ninguno</div>"}
+      ${
+        (d.suppliers.equivalente || [])
+          .map(
+            (s) =>
+              `<div class="row"><div class="t">${s.supplier_name}</div><div class="muted">${s.product_label} · ${
+                s.unit_cost != null ? money(s.unit_cost) : "PRECIO_NO_VERIFICADO"
+              }</div></div>`
+          )
+          .join("") || "<div class='muted'>ninguno</div>"
+      }
       <div style="margin-top:8px"><strong>NO MATCH</strong> (${d.suppliers.no.length})</div>
-      ${(d.suppliers.no || []).slice(0, 8).map(s => `<div class="row"><div class="t">${s.supplier_name || "—"}</div><div class="muted">${s.product_label || s.why || ""}</div></div>`).join("") || "<div class='muted'>ninguno</div>"}
+      ${
+        (d.suppliers.no || [])
+          .slice(0, 8)
+          .map(
+            (s) =>
+              `<div class="row"><div class="t">${s.supplier_name || "—"}</div><div class="muted">${
+                s.product_label || s.why || ""
+              }</div></div>`
+          )
+          .join("") || "<div class='muted'>ninguno</div>"
+      }
     </div>
     <div class="card" style="margin-top:10px">
       <h3>Rentabilidad</h3>
@@ -183,6 +228,27 @@ async function openOpp(id) {
     </div>`;
 }
 
+async function loadCotizaciones() {
+  const data = await api("/api/cotizaciones");
+  const list = $("#cot-list");
+  list.innerHTML =
+    (data.cotizaciones || [])
+      .map(
+        (c) => `
+    <div class="row">
+      <div class="t">#${c.external_id || c.opportunity_id} · ${c.opp_title || ""}</div>
+      <div>Venta ${c.sell_price != null ? money(c.sell_price) : "PRECIO_NO_VERIFICADO"} · costo ${
+          c.cost_total != null ? money(c.cost_total) : "—"
+        }</div>
+      <div class="muted">markup ${c.markup} · ${c.status} · ${c.verification} · ROI ${
+          c.roi != null ? pct(c.roi) : "—"
+        }</div>
+    </div>`
+      )
+      .join("") ||
+    `<div class="muted">Sin cotizaciones. Se crean con costos verificados (nunca inventados).</div>`;
+}
+
 async function loadCaja() {
   const c = await api("/api/caja");
   $("#caja-formula").textContent = c.formula_es;
@@ -196,19 +262,58 @@ async function loadCaja() {
     </div>
     <div class="warnbox">Nunca se cuentan cotizaciones (quotes) como caja.</div>`;
   const led = $("#caja-ledger");
-  led.innerHTML = (c.ledger || []).map((m) =>
-    `<div class="row"><div class="t">${m.tipo} ${money(m.amount)}</div><div class="muted">${m.concept} · ${m.moved_at}</div></div>`
-  ).join("") || `<div class="muted">Sin movimientos. Cargá ingresos/egresos reales.</div>`;
+  led.innerHTML =
+    (c.ledger || [])
+      .map(
+        (m) =>
+          `<div class="row"><div class="t">${m.tipo} ${money(m.amount)}</div><div class="muted">${m.concept} · ${
+            m.moved_at
+          }</div></div>`
+      )
+      .join("") || `<div class="muted">Sin movimientos. Cargá ingresos/egresos reales.</div>`;
 }
 
 async function loadCobranzas() {
   const data = await api("/api/cobranzas");
   const list = $("#cob-list");
-  list.innerHTML = (data.cobranzas || []).map((c) => `
+  list.innerHTML =
+    (data.cobranzas || [])
+      .map(
+        (c) => `
     <div class="row">
       <div class="t">${money(c.amount)} · ${c.state} · ${c.cobro_label}</div>
       <div class="muted">#${c.external_id || "—"} ${c.opp_title || ""} · vence ${c.due_at || "NO VERIFICADO"}</div>
-    </div>`).join("") || `<div class="muted">Sin cobranzas cargadas.</div>`;
+    </div>`
+      )
+      .join("") || `<div class="muted">Sin cobranzas cargadas.</div>`;
+}
+
+async function loadIndicadores() {
+  const ind = await api("/api/indicadores");
+  $("#ind-grid").innerHTML = `
+    <div class="card"><div class="muted">Capital operativo</div><div class="kpi">${money(ind.capital_operativo_real)}</div></div>
+    <div class="card"><div class="muted">Caja</div><div class="kpi">${money(ind.caja)}</div></div>
+    <div class="card"><div class="muted">Libre</div><div class="kpi">${money(ind.libre)}</div></div>
+    <div class="card"><div class="muted">Pipeline abierto</div><div class="kpi">${ind.pipeline_open}</div></div>
+    <div class="card"><div class="muted">Presentadas</div><div class="kpi">${ind.presentadas}</div></div>
+    <div class="card"><div class="muted">Ops ganadas</div><div class="kpi">${ind.ops_ganadas}</div></div>
+    <div class="card"><div class="muted">Alertas</div><div class="kpi">${ind.alertas_abiertas}</div></div>
+    <div class="card"><div class="muted">Ventas reales / meta</div><div class="kpi">${money(ind.metas.ventas_reales)}</div></div>`;
+  $("#ind-note").textContent = ind.note;
+}
+
+async function loadProyecciones() {
+  const proy = await api("/api/proyecciones");
+  const pl = $("#proy-list");
+  pl.innerHTML = `<div class="warnbox"><strong>${proy.label}</strong> — ${proy.disclaimer}</div>`;
+  for (const s of proy.scenarios || []) {
+    const d = document.createElement("div");
+    d.className = "row";
+    d.innerHTML = `<div class="t">${s.scenario.toUpperCase()} · ${s.label}</div>
+      <div>Ventas: ${money(s.ventas)} · Ganancia: ${money(s.ganancia)}</div>
+      <div class="muted">${s.note}</div>`;
+    pl.appendChild(d);
+  }
 }
 
 async function submitOpp(e) {
@@ -218,7 +323,11 @@ async function submitOpp(e) {
   try {
     const res = await api("/api/oportunidades", { method: "POST", body: JSON.stringify(body) });
     $("#form-msg").textContent = res.ok ? `OK id=${res.id}` : res.error;
-    if (res.ok) { e.target.reset(); await loadOps(); showView("ops"); }
+    if (res.ok) {
+      e.target.reset();
+      await loadOps();
+      showView("ops");
+    }
   } catch (err) {
     $("#form-msg").textContent = String(err.message || err);
   }
@@ -245,13 +354,18 @@ async function boot() {
   await Promise.all([loadHoy(), loadOps(), loadCaja(), loadCobranzas()]);
 }
 
-$$(".nav button").forEach((b) => b.addEventListener("click", async () => {
-  showView(b.dataset.view);
-  if (b.dataset.view === "hoy") await loadHoy();
-  if (b.dataset.view === "ops") await loadOps();
-  if (b.dataset.view === "caja") await loadCaja();
-  if (b.dataset.view === "cob") await loadCobranzas();
-}));
+$$(".nav button").forEach((b) =>
+  b.addEventListener("click", async () => {
+    showView(b.dataset.view);
+    if (b.dataset.view === "hoy") await loadHoy();
+    if (b.dataset.view === "ops") await loadOps();
+    if (b.dataset.view === "cot") await loadCotizaciones();
+    if (b.dataset.view === "caja") await loadCaja();
+    if (b.dataset.view === "cob") await loadCobranzas();
+    if (b.dataset.view === "ind") await loadIndicadores();
+    if (b.dataset.view === "proy") await loadProyecciones();
+  })
+);
 
 $("#form-opp").addEventListener("submit", submitOpp);
 $("#form-caja").addEventListener("submit", submitCaja);

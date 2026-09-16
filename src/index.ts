@@ -1,5 +1,5 @@
-import { handleApi, envFromVars } from "./api.js";
-import { wrapD1 } from "./db.js";
+import { handleApi } from "./handlers.js";
+import { wrapD1, asMiniDb } from "./db.js";
 
 export interface Env {
   DB: D1Database;
@@ -10,28 +10,27 @@ export interface Env {
   HARD_SKIP_CODINEU?: string;
 }
 
+/**
+ * Cloudflare Worker entry — same API surface as local (`handlers.ts` + MiniDb).
+ * Never invents opportunities/prices/stock. Never auto-buys / auto-bids.
+ */
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith("/api/")) {
-      const db = wrapD1(env.DB);
-      const cfg = envFromVars({
-        MARKUP_DEFAULT: env.MARKUP_DEFAULT,
-        META_VENTAS_MENSUAL: env.META_VENTAS_MENSUAL,
-        META_GANANCIA_MENSUAL: env.META_GANANCIA_MENSUAL,
-      });
-      const res = await handleApi(request, db, cfg);
+      const db = asMiniDb(wrapD1(env.DB));
+      const res = await handleApi(request, db);
       if (res) return res;
       return new Response(JSON.stringify({ error: "not found" }), {
         status: 404,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json; charset=utf-8" },
       });
     }
 
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
-    return new Response("M&M RADAR — configure [assets]", { status: 200 });
+    return new Response("M&M RADAR — configure [assets] in wrangler.toml", { status: 200 });
   },
 };

@@ -192,5 +192,110 @@ export async function handleApi(req: Request, db: MiniDb): Promise<Response | nu
     return json(res, res.ok ? 200 : 400);
   }
 
+
+  if (p === "/api/cotizaciones" && method === "GET") {
+    const items = await db.all(
+      `SELECT q.*, o.external_id, o.title AS opp_title
+       FROM quotes q
+       LEFT JOIN opportunities o ON o.id = q.opportunity_id
+       ORDER BY q.id DESC LIMIT 200`
+    );
+    return json({
+      cotizaciones: items,
+      note: "Las cotizaciones NUNCA cuentan como caja. Sin auto-presentación.",
+    });
+  }
+
+  if (p === "/api/cotizaciones" && method === "POST") {
+    const body = await parseBody(req);
+    const opportunity_id = Number(body.opportunity_id);
+    if (!Number.isFinite(opportunity_id)) return json({ error: "opportunity_id requerido" }, 400);
+    const markup = Number(body.markup) || MARKUP_DEFAULT;
+    const items = await db.all<{ qty: number; unit_cost: number | null; cost_verified: number }>(
+      "SELECT qty, unit_cost, cost_verified FROM opportunity_items WHERE opportunity_id = ?",
+      opportunity_id
+    );
+    const { computeProfit } = await import("./engines/profit.js");
+    const profit = computeProfit(
+      items.map((it) => ({
+        qty: Number(it.qty) || 1,
+        unit_cost: it.unit_cost,
+        cost_verified: Number(it.cost_verified) === 1,
+      })),
+      { markup }
+    );
+    await db.run(
+      `INSERT INTO quotes (opportunity_id, markup, cost_products, cost_shipping, cost_other, cost_total, sell_price, gross, net_estimated, capital, days_locked, roi, capital_efficiency, status, notes, verification)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      opportunity_id,
+      markup,
+      profit.cost_products,
+      profit.cost_shipping,
+      profit.cost_other,
+      profit.cost_total,
+      profit.sell_price,
+      profit.gross,
+      profit.net_estimated,
+      profit.capital,
+      profit.days_locked,
+      profit.roi,
+      profit.capital_efficiency,
+      String(body.status || "BORRADOR"),
+      String(body.notes || ""),
+      profit.verification
+    );
+    return json({ ok: true, profit, note: "Sin auto-presentación / auto-bid" }, 201);
+  }
+
+  if (p === "/api/indicadores" && method === "GET") {
+    const hoy = await dashboard(db);
+    const open = await db.one<{ n: number }>(
+      "SELECT COUNT(*) AS n FROM opportunities WHERE skipped = 0 AND pipeline NOT IN ('DESCARTADA','PERDIDA','COBRADO','COBRADA','SKIPPED_HARD')"
+    );
+    const presentadas = await db.one<{ n: number }>(
+      "SELECT COUNT(*) AS n FROM opportunities WHERE pipeline = 'PRESENTADA'"
+    );
+    const ganadas = await db.one<{ n: number }>(
+      "SELECT COUNT(*) AS n FROM opportunities WHERE pipeline = 'OPS_GANADA'"
+    );
+    const alertas = await db.one<{ n: number }>("SELECT COUNT(*) AS n FROM alerts WHERE resolved = 0");
+    return json({
+      capital_operativo_real: hoy.capital_operativo_real,
+      caja: hoy.caja,
+      por_cobrar: hoy.por_cobrar,
+      libre: hoy.libre,
+      metas: hoy.metas,
+      pipeline_open: open?.n ?? 0,
+      presentadas: presentadas?.n ?? 0,
+      ops_ganadas: ganadas?.n ?? 0,
+      alertas_abiertas: alertas?.n ?? 0,
+      labels: hoy.labels,
+      note: "Indicadores solo desde ledger/DB real — ceros si vacío. No inventa.",
+    });
+  }
+
+  if (p === "/api/backup" && method === "POST") {
+    const body = await parseBody(req);
+    const counts: Record<string, number> = {};
+    for (const t of ["opportunities", "quotes", "cash_ledger", "collections", "alerts"]) {
+      const row = await db.one<{ n: number }>(`SELECT COUNT(*) AS n FROM ${t}`);
+      counts[t] = Number(row?.n || 0);
+    }
+    const res = await db.run(
+      `INSERT INTO backups (kind, label, path_or_url, row_counts_json, note) VALUES (?,?,?,?,?)`,
+      String(body.kind || "manual"),
+      String(body.label || "snapshot"),
+      String(body.path_or_url || ""),
+      JSON.stringify(counts),
+      String(body.note || "metadata only — export vía /api/backup/json si disponible")
+    );
+    return json({ ok: true, id: res.lastId, counts }, 201);
+  }
+
+  if (p === "/api/backup" && method === "GET") {
+    const items = await db.all("SELECT * FROM backups ORDER BY id DESC LIMIT 50");
+    return json({ backups: items });
+  }
+
   return null;
 }

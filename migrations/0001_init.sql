@@ -258,3 +258,20 @@ CREATE VIEW IF NOT EXISTS items AS SELECT * FROM opportunity_items;
 CREATE VIEW IF NOT EXISTS operations AS SELECT * FROM opportunities WHERE pipeline IN ('OPS_GANADA','COMPRANDO','ENTREGANDO','FACTURANDO','COBRANDO','COBRADA','COBRADO');
 CREATE VIEW IF NOT EXISTS receivables AS SELECT * FROM collections;
 CREATE VIEW IF NOT EXISTS receivables_es AS SELECT * FROM cobranzas;
+
+
+-- Tablas / vistas de producto (nombres canónicos del MVP)
+CREATE TABLE IF NOT EXISTS backups (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL DEFAULT 'manual',
+  label TEXT NOT NULL DEFAULT '',
+  path_or_url TEXT NOT NULL DEFAULT '',
+  row_counts_json TEXT NOT NULL DEFAULT '{}',
+  note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- supplier_quotes: alias canónico de supplier_matches (mismo contenido)
+CREATE VIEW IF NOT EXISTS supplier_quotes AS SELECT * FROM supplier_matches;
+
+-- settings ya es VIEW sobre config; operations / receivables ya definidos arriba
