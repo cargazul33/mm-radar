@@ -100,3 +100,24 @@ export function numOrNull(v: unknown): number | null {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
+
+/** Ensure migration 0002 columns exist (safe on fresh 0001 and old DBs). */
+export async function ensureSchema(db: MiniDb): Promise<void> {
+  const oppCols = await db.all<{ name: string }>("PRAGMA table_info(opportunities)");
+  const oppNames = new Set(oppCols.map((c) => c.name));
+  if (!oppNames.has("pliego_analysis_json")) {
+    await db.exec(
+      "ALTER TABLE opportunities ADD COLUMN pliego_analysis_json TEXT NOT NULL DEFAULT '{}'"
+    );
+  }
+  const itemCols = await db.all<{ name: string }>("PRAGMA table_info(opportunity_items)");
+  const itemNames = new Set(itemCols.map((c) => c.name));
+  if (!itemNames.has("specs")) {
+    await db.exec("ALTER TABLE opportunity_items ADD COLUMN specs TEXT NOT NULL DEFAULT ''");
+  }
+  if (!itemNames.has("mandatory_reqs")) {
+    await db.exec(
+      "ALTER TABLE opportunity_items ADD COLUMN mandatory_reqs TEXT NOT NULL DEFAULT ''"
+    );
+  }
+}

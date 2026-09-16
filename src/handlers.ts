@@ -5,6 +5,7 @@ import {
   listOportunidades,
   opportunityDetail,
   addOpportunityManual,
+  applyPliegoText,
   cobranzasList,
   alertsList,
   projections,
@@ -106,6 +107,42 @@ export async function handleApi(req: Request, db: MiniDb): Promise<Response | nu
     const det = await opportunityDetail(db, Number(m[1]));
     if (!det) return json({ error: "no encontrada" }, 404);
     return json(det);
+  }
+
+  const mExtract = p.match(/^\/api\/oportunidades\/(\d+)\/extract$/);
+  if (mExtract && method === "POST") {
+    const body = await parseBody(req);
+    const text = String(body.pliego_text || body.text || "");
+    if (!text.trim()) {
+      return json(
+        {
+          error: "pliego_text requerido (no se inventa desde título)",
+          invent_allowed: false,
+        },
+        400
+      );
+    }
+    const res = await applyPliegoText(db, Number(mExtract[1]), text, {
+      replace_items: body.replace_items !== false,
+    });
+    return json(res, res.ok ? 200 : 404);
+  }
+
+  // Dry-run extract without opportunity (tests / paste)
+  if (p === "/api/pliego/extract" && method === "POST") {
+    const body = await parseBody(req);
+    const text = String(body.pliego_text || body.text || "");
+    const { analyzePliegoText } = await import("./engines/checklist.js");
+    const analysis = analyzePliegoText(text, {
+      title: body.title ? String(body.title) : undefined,
+      organism: body.organism ? String(body.organism) : undefined,
+      external_id: body.external_id ? String(body.external_id) : undefined,
+      cierre_at: body.cierre_at ? String(body.cierre_at) : undefined,
+      pliego_url: body.pliego_url ? String(body.pliego_url) : undefined,
+      pliego_file: body.pliego_file ? String(body.pliego_file) : undefined,
+      bid_scope: body.bid_scope ? String(body.bid_scope) : undefined,
+    });
+    return json(analysis);
   }
 
   if (p === "/api/caja" && method === "GET") {

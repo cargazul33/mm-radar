@@ -1,0 +1,150 @@
+                               PROVINCIA DEL NEUQUÉN
+
+                        MINISTERIO DE TURISMO, AMBIENTE Y
+
+                                RECURSOS NATURALES
+
+                   DIRECCIÓN PROVINCIAL DE ADMINISTRACIÓN
+
+                    DIRECCIÓN GENERAL DE CONTRATACIONES
+
+
+
+
+        PLIEGO DE BASES Y CONDICIONES GENERALES Y PARTICULARES
+
+
+
+
+EXPEDIENTE ELECTRÓNICO EX-2026-01910042- -NEU-DESP#MTUR
+
+CONCURSO DE PRECIOS Nº 77/26 - Segundo llamado.
+
+
+
+
+Apertura de Propuestas: 21/09/2026            HORA: 10:00
+
+OBJETO: Adquisición de elementos informáticos para actualizar y readecuar la conectividad de
+la red de datos en el Centro de Ecología Aplicada del Neuquén (CEAN) con asiento en la localidad
+de Junín de los Andes.
+
+DESTINO: Centro de Ecología Aplicada del Neuquén (CEAN) dependiente del Ministerio de
+Turismo, Ambiente y Recursos Naturales.
+
+
+
+
+                                                           PLIEG-2026-03071395-NEU-ADM#MTUR
+                                                                                               1
+
+                                                           Página 1 de 21
+I.- PLIEGO DE BASES Y CONDICIONES - CLÁUSULAS GENERALES
+Artículo 1°: Ámbito de Aplicación.
+
+Las cláusulas contenidas en el presente Pliego de Bases y Condiciones Generales, son de aplicación
+para todos los procedimientos de contratación de servicios por parte del Gobierno de la Provincia
+del Neuquén.
+
+Artículo 2°: Régimen legal.
+
+Regirá para el segundo llamado a Concurso de Precios N° 77/26 y la relación contractual resultante,
+lo dispuesto en:
+   a) Ley 2141 de Administración Financiera y Control de la Provincia del Neuquén.
+   b) Ley 1284 de Procedimientos Administrativos.
+   c) Ley 2683, Régimen de promoción de las actividades económicas para la adquisición de bienes
+       y la contratación de obras y servicios.
+   d) Ley 3002 y Decreto Reglamentario, Incorporación de Medios Digitales.
+   e) Ley 2819, Desburocratización de Trámites.
+   f) Ley 2578 de Firma Digital. Decreto Reglamentario Nº 2758/95 y sus modificatorios y
+       complementarios.
+   g) Ley 2772 Servicios Privados de vigilancia e investigación de la provincia de Neuquén
+   h) Decreto vigente de montos límite de las contrataciones según los artículos 1º, 2º y 4º del
+      Reglamento de Contrataciones Decreto 2758/95. DECTO-2025-1468-E-NEU-GPN.
+   i) Decreto Reglamentario Nº 2178/10. Régimen de Promoción de las actividades económicas
+      para la adquisición de bienes y la contratación de obras y servicios de la Provincia del
+      Neuquén.
+   j) Decreto N° 1394/14. Certificado de Cumplimiento Fiscal Web.
+   k) Decreto Nº 367/04. Pagos a Contratistas y Proveedores – Acreditación en cuenta – Banco
+      Provincia del Neuquén S.A.
+   l) Pliego de Bases y Condiciones que contiene las Cláusulas Generales y el Pliego de Bases y
+      Condiciones Particulares, las especificaciones técnicas y sus anexos.
+   m) Aclaraciones a las consultas que eventualmente se pudieran formular y todo documento
+      complementario tomado en consideración para la adjudicación.
+   n) Toda otra norma aplicable a la contratación respectiva.
+
+
+Artículo 3°: Régimen de la contratación y conocimiento de antecedentes.
+
+El presente documento constituye el Pliego de Bases y Condiciones que contiene las Cláusulas
+Generales, Cláusulas Particulares, Especificaciones técnicas y demás anexos, conjuntamente con las
+aclaraciones que pudiera emitir el Área de compras del organismo contratante, y establece los
+derechos y obligaciones de la Administración, de los oferentes de la presente contratación y de quien
+resultara adjudicatario.
+
+La formulación de la oferta implica el conocimiento y aceptación de este pliego y su sometimiento a
+todas sus disposiciones del Régimen de Contrataciones vigente, siendo responsabilidad exclusiva
+                                                           PLIEG-2026-03071395-NEU-ADM#MTUR
+                                                                                                   2
+
+                                                              Página 2 de 21
+de los interesados en presentar Oferta, el tomar debido conocimiento de todas las condiciones
+establecidas.
+
+Artículo 4°: De la normativa específica para el proveedor.
+   a) CO.DI.NEU: Decreto DECTO-2022-2237-E-NEU-GPN.
+   b) Sanciones: artículos 71° a 89° del Decreto N° 2758/95 y modificatorios.
+   c) Rechazo de ofertas: artículo 38º de Ley 2141 y Decreto DECTO-2022-2237-E-NEU-GPN.
+   d) Pre adjudicación: artículo 63º Ley 2141.
+   e) Garantías de mantenimiento de oferta y de contrato: artículos 23º y 25º del Reglamento
+       Decreto N° 2758/95 (Ver Disposición CGP).
+   f) Facturación y pago: Decreto N° 367/04.
+
+Artículo 5°: Exención de Responsabilidad.
+
+La Administración podrá desistir del llamado en cualquier etapa de su realización o podrá desestimar
+todas las presentaciones, en ambos casos previo a la adjudicación y por razones de oportunidad, de
+mérito o conveniencia, sin que estas decisiones puedan motivar reclamos de indemnización de
+ninguna naturaleza por gastos, honorarios o retribuciones en que hubieran incurrido los oferentes
+en la preparación y presentación de la oferta, renunciando a deducir cualquier reclamo que
+reconozca como causa una hipotética responsabilidad precontractual.
+
+Artículo 6°: Domicilio, jurisdicción y competencia.
+
+Los oferentes deberán fijar su domicilio electrónico, real y legal, siendo requisito indispensable que
+este último lo sea en la Provincia del Neuquén. Todas las notificaciones se tendrán por válidas en
+dicho domicilio constituido. Toda modificación del domicilio constituido tendrá validez después de
+haber sido notificado de dicho cambio en forma fehaciente a la autoridad de aplicación.
+
+Para cualquier divergencia o interpretación que pudiera suscitarse en la aplicación del presente acto,
+deberán respetarse las normas de procedimiento administrativo, sin perjuicio de lo cual las partes
+expresamente acuerdan someterse a la jurisdicción del Fuero Procesal Administrativo de la Provincia
+del Neuquén.
+
+Artículo 7°: Oferentes.
+
+Es obligatorio que los oferentes presenten el certificado que acredite su inclusión en el Padrón de
+Proveedores de la Provincia del Neuquén, bajo pena de tenerlo por desistido de la oferta en caso de
+que no regularice su situación antes de la pre adjudicación, conforme artículo 5º Disposición Nº
+70/05 de la Contaduría General de la Provincia.
+
+No podrán ser aceptados como oferentes quienes se encuentren comprendidos en algunas de las
+                                                        PLIEG-2026-03071395-NEU-ADM#MTUR
+                                                                                                    8
+
+                                                              Página 3 de 21
+siguientes causales:
+   a) Que tengan alguna de las causales de incompatibilidad para contratar con el Estado Provincial
+       conforme el artículo 88º del Reglamento de Contrataciones Decreto Nº 2758/95.
+   b) Posean sanciones vigentes en el Padrón de Proveedores de la Provincia.
+   c) Las personas humanas o jurídicas en estado de quiebra o liquidación. Las que se encuentren
+       en estado de concurso preventivo podrán formular ofertas, salvo decisión judicial en
+       contrario.
+   d) Posean una pena de inhabilitación por condena judicial.
+   e) Personas jurídicas cuyos socios o miembros del Directorio tengan pendientes causas y/o
+       condenas en la justicia penal.
+   f) Quienes sean evasores o deudores morosos impositivas o previsionalmente declarados por
+       decisión judicial o administrativa firme.
+   g) Sociedades no inscriptas en el Registro Público de Comercio al momento de la presentación
+       de la oferta.
+   h) Personas humanas que tengan pendientes causas y/o condenas en la justicia provincial y

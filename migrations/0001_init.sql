@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS opportunities (
   skip_reason TEXT NOT NULL DEFAULT '',
   notes TEXT NOT NULL DEFAULT '',
   raw_json TEXT NOT NULL DEFAULT '{}',
+  pliego_analysis_json TEXT NOT NULL DEFAULT '{}',
   verified_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -71,6 +72,8 @@ CREATE TABLE IF NOT EXISTS opportunity_items (
   unit TEXT NOT NULL DEFAULT 'u',
   brand TEXT NOT NULL DEFAULT '',
   model TEXT NOT NULL DEFAULT '',
+  specs TEXT NOT NULL DEFAULT '',
+  mandatory_reqs TEXT NOT NULL DEFAULT '',
   unit_cost REAL,
   cost_verified INTEGER NOT NULL DEFAULT 0,
   verification TEXT NOT NULL DEFAULT 'NO VERIFICADO',
@@ -275,3 +278,4 @@ CREATE TABLE IF NOT EXISTS backups (
 CREATE VIEW IF NOT EXISTS supplier_quotes AS SELECT * FROM supplier_matches;
 
 -- settings ya es VIEW sobre config; operations / receivables ya definidos arriba
+

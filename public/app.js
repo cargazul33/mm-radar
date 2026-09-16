@@ -127,6 +127,73 @@ async function loadOps() {
   }
 }
 
+
+function renderResumen(r) {
+  if (!r) return `<div class="muted">Sin resumen — adjuntá/pegá pliego (NO VERIFICADO)</div>`;
+  const productos = (r.productos || [])
+    .map(
+      (p) =>
+        `<div class="row"><div class="t">#${p.line_no} ${esc(p.product)}</div>
+        <div class="muted">qty ${esc(p.qty)} · ${esc(p.brand)} ${esc(p.model)}</div>
+        <div class="muted">${esc(p.specs)}</div></div>`
+    )
+    .join("");
+  return `<div class="warnbox" style="margin-bottom:8px">
+    <div><strong>${esc(r.titulo)}</strong> · #${esc(r.external_id)}</div>
+    <div class="muted">${esc(r.organismo)} · extract: ${esc(r.extract_status)} · ${esc(r.verification)}</div>
+    <div class="grid" style="margin-top:8px">
+      <div>Cierre: <strong>${esc(r.cierre)}</strong></div>
+      <div>Apertura: <strong>${esc(r.apertura)}</strong></div>
+      <div>Entrega: <strong>${esc(r.delivery)}</strong></div>
+      <div>Garantía: <strong>${esc(r.warranty)}</strong></div>
+      <div>BID_SCOPE: <strong>${esc(r.bid_scope)}</strong></div>
+      <div>Renglones a cotizar: <strong>${esc(r.lines_to_quote)}</strong></div>
+    </div>
+    <div style="margin-top:8px"><strong>Ítems (${r.items_count})</strong></div>
+    <div class="list">${productos || "<div class='muted'>Sin ítems (no inventados)</div>"}</div>
+    <div style="margin-top:8px"><strong>Docs</strong>: ${(r.docs_required || []).map(esc).join(" · ")}</div>
+    <div><strong>Obligatorios</strong>: ${(r.mandatory_reqs || []).map(esc).join(" · ")}</div>
+    <div><strong>Condiciones</strong>: ${(r.special_conditions || []).map(esc).join(" · ")}</div>
+    <div><strong>Riesgos rechazo</strong>: ${(r.rejection_risks || []).map(esc).join(" · ")}</div>
+    <div class="muted" style="margin-top:6px">${esc(r.note || "")}</div>
+  </div>`;
+}
+
+function renderChecklist(c) {
+  if (!c) return `<div class="muted">Sin checklist</div>`;
+  const rows = (c.items || [])
+    .map((it) => {
+      const cls =
+        it.status === "OK"
+          ? "good"
+          : it.status === "BLOQUEA"
+            ? "bad"
+            : it.status === "PENDIENTE"
+              ? "warn"
+              : "";
+      return `<div class="row"><div class="t">${esc(it.label)} <span class="badge ${cls}">${esc(
+        it.status
+      )}</span></div><div class="muted">${esc(it.detail)}</div></div>`;
+    })
+    .join("");
+  return `<div>
+    <div class="muted">${c.blocks_presentation ? "⛔ Bloquea presentación" : "Sin bloqueos duros"} · ${esc(
+      c.verification
+    )}</div>
+    <div class="list" style="margin-top:8px">${rows}</div>
+    <div class="muted" style="margin-top:6px">${esc(c.note || "")}</div>
+  </div>`;
+}
+
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+
 async function openOpp(id) {
   showView("detalle");
   const box = $("#detalle");
@@ -143,10 +210,23 @@ async function openOpp(id) {
         <span class="badge ${bandClass(score.band)}">${score.band || ""}</span>
       </div>
       <div class="actions">
-        <a class="btn ghost" href="${d.source_url}" target="_blank" rel="noopener">URL oficial</a>
-        ${d.download_pliego ? `<a class="btn primary" href="${d.download_pliego}" target="_blank" rel="noopener">DESCARGAR PLIEGO</a>` : ""}
+        <a class="btn ghost" href="${d.source_url || "#"}" target="_blank" rel="noopener">URL oficial (fuente)</a>
+        ${
+          d.download_pliego
+            ? `<a class="btn primary" href="${d.download_pliego}" target="_blank" rel="noopener">DESCARGAR PLIEGO</a>`
+            : `<span class="muted">Sin pliego_url — DESCARGAR PLIEGO no disponible (no usar fuente como descarga)</span>`
+        }
       </div>
-      ${o.bid_scope ? `<div class="warnbox">bid_scope: <strong>${o.bid_scope}</strong></div>` : ""}
+      ${o.bid_scope || d.bid_scope ? `<div class="warnbox">bid_scope: <strong>${o.bid_scope || d.bid_scope}</strong></div>` : ""}
+      <h3 style="margin-top:12px">RESUMEN EJECUTIVO</h3>
+      ${renderResumen(d.resumen_ejecutivo)}
+      <h3 style="margin-top:12px">CHECKLIST DE PRESENTACIÓN</h3>
+      ${renderChecklist(d.checklist_presentacion)}
+      <h3 style="margin-top:12px">Pegar texto de pliego (extract sin inventar)</h3>
+      <textarea id="pliego-text" rows="6" placeholder="Pegá texto del pliego / pdftotext aquí…"></textarea>
+      <div class="actions">
+        <button type="button" class="btn primary" id="btn-extract-pliego">Extraer pliego</button>
+      </div>
       <h3 style="margin-top:12px">Score M&M (componentes)</h3>
       <div class="grid">
         <div>Encaje: ${score.encaje ?? 0}/20</div>
@@ -226,6 +306,30 @@ async function openOpp(id) {
       </div>
       ${(d.rentabilidad.invent_flags || []).length ? `<div class="warnbox">${d.rentabilidad.invent_flags.join(" · ")}</div>` : ""}
     </div>`;
+  const btnEx = document.getElementById("btn-extract-pliego");
+  if (btnEx) {
+    btnEx.onclick = async () => {
+      const ta = document.getElementById("pliego-text");
+      const text = (ta && ta.value) || "";
+      if (!text.trim()) {
+        alert("Pegá texto del pliego. No se inventa desde el título.");
+        return;
+      }
+      btnEx.disabled = true;
+      btnEx.textContent = "Extrayendo…";
+      try {
+        await api(`/api/oportunidades/${id}/extract`, {
+          method: "POST",
+          body: JSON.stringify({ pliego_text: text }),
+        });
+        await openOpp(id);
+      } catch (e) {
+        alert(String(e));
+        btnEx.disabled = false;
+        btnEx.textContent = "Extraer pliego";
+      }
+    };
+  }
 }
 
 async function loadCotizaciones() {

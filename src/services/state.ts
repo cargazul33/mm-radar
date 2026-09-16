@@ -15,7 +15,15 @@ import {
   LABEL_STOCK_NO_VERIFICADO,
   LABEL_PRECIO_NO_VERIFICADO,
   LABEL_COBRO_ESTIMADO,
+  LABEL_NO_VERIFICADO,
 } from "../constants.js";
+import {
+  analyzePliegoText,
+  buildChecklistPresentacion,
+  buildResumenEjecutivo,
+  type OppContext,
+} from "../engines/checklist.js";
+import type { PliegoExtract } from "../engines/pliegoExtract.js";
 
 export async function cfg(db: MiniDb, key: string, fallback: string): Promise<string> {
   const row = await db.one<{ value: string }>("SELECT value FROM config WHERE key = ?", key);
@@ -284,6 +292,99 @@ export async function queHagoHoy(db: MiniDb) {
   return buildQueHagoHoy(signals);
 }
 
+
+function parseAnalysis(raw: unknown): {
+  extract: PliegoExtract | null;
+  resumen_ejecutivo: ReturnType<typeof buildResumenEjecutivo> | null;
+  checklist_presentacion: ReturnType<typeof buildChecklistPresentacion> | null;
+} {
+  try {
+    const j = typeof raw === "string" ? JSON.parse(raw || "{}") : (raw as Record<string, unknown>) || {};
+    return {
+      extract: (j.extract as PliegoExtract) || null,
+      resumen_ejecutivo: (j.resumen_ejecutivo as ReturnType<typeof buildResumenEjecutivo>) || null,
+      checklist_presentacion:
+        (j.checklist_presentacion as ReturnType<typeof buildChecklistPresentacion>) || null,
+    };
+  } catch {
+    return { extract: null, resumen_ejecutivo: null, checklist_presentacion: null };
+  }
+}
+
+function oppCtxFromRow(opp: Record<string, unknown>, extras: Partial<OppContext> = {}): OppContext {
+  return {
+    title: String(opp.title || ""),
+    organism: String(opp.organism || ""),
+    external_id: String(opp.external_id || ""),
+    cierre_at: String(opp.cierre_at || ""),
+    pliego_url: String(opp.pliego_url || ""),
+    pliego_file: String(opp.pliego_file || ""),
+    bid_scope: String(opp.bid_scope || ""),
+    stock_verified: Number(opp.stock_verified) === 1,
+    ...extras,
+  };
+}
+
+export async function applyPliegoText(
+  db: MiniDb,
+  id: number,
+  pliegoText: string,
+  opts: { replace_items?: boolean } = {}
+) {
+  const opp = await db.one<Record<string, unknown>>("SELECT * FROM opportunities WHERE id = ?", id);
+  if (!opp) return { ok: false as const, error: "no encontrada" };
+  const costAny = await db.one<{ n: number }>(
+    "SELECT COUNT(*) AS n FROM opportunity_items WHERE opportunity_id = ? AND cost_verified = 1",
+    id
+  );
+  const ctx = oppCtxFromRow(opp, { cost_verified_any: num(costAny?.n) > 0 });
+  const analysis = analyzePliegoText(pliegoText || "", ctx);
+  const payload = JSON.stringify({
+    ...analysis,
+    saved_at: new Date().toISOString(),
+  });
+  await db.run(
+    "UPDATE opportunities SET pliego_analysis_json = ?, updated_at = datetime('now') WHERE id = ?",
+    payload,
+    id
+  );
+  // Fill cierre/apertura/bid_scope only when empty and extract has evidence
+  if (!String(opp.cierre_at || "") && analysis.extract.cierre) {
+    await db.run("UPDATE opportunities SET cierre_at = ? WHERE id = ?", analysis.extract.cierre, id);
+  }
+  if (!String(opp.bid_scope || "") && analysis.extract.bid_scope) {
+    await db.run("UPDATE opportunities SET bid_scope = ? WHERE id = ?", analysis.extract.bid_scope, id);
+  }
+
+  const replace = opts.replace_items !== false;
+  if (replace && analysis.extract.items.length) {
+    await db.run("DELETE FROM opportunity_items WHERE opportunity_id = ?", id);
+    for (const it of analysis.extract.items) {
+      if (it.qty == null) continue; // never invent qty
+      await db.run(
+        `INSERT INTO opportunity_items (
+           opportunity_id, line_no, description, qty, unit, brand, model, specs, mandatory_reqs,
+           unit_cost, cost_verified, verification, source_url
+         ) VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?)`,
+        id,
+        it.line_no,
+        it.product,
+        it.qty,
+        it.unit || "u",
+        it.brand || "",
+        it.model || "",
+        it.specs || "",
+        "",
+        null,
+        LABEL_NO_VERIFICADO,
+        String(opp.source_url || opp.url || "")
+      );
+    }
+  }
+  return { ok: true as const, ...analysis };
+}
+
+
 export async function listOportunidades(db: MiniDb) {
   const rows = await db.all<Record<string, unknown>>(
     `SELECT id, external_id, source, title, organism, rubros, modality, numero,
@@ -340,6 +441,24 @@ export async function opportunityDetail(db: MiniDb, id: number) {
     no: matches.filter((m) => m.match_type === "NO MATCH" || !m.match_type),
   };
 
+  const analysis = parseAnalysis(opp.pliego_analysis_json);
+  const costVerifiedAny = items.some((it) => Number(it.cost_verified) === 1);
+  const ctx = oppCtxFromRow(opp, { cost_verified_any: costVerifiedAny });
+  let resumen = analysis.resumen_ejecutivo;
+  let checklist = analysis.checklist_presentacion;
+  if (analysis.extract && (!resumen || !checklist)) {
+    resumen = resumen || buildResumenEjecutivo(analysis.extract, ctx);
+    checklist = checklist || buildChecklistPresentacion(analysis.extract, ctx);
+  } else if (!analysis.extract) {
+    // Empty skeleton — never invent products
+    const empty = analyzePliegoText("", ctx);
+    resumen = resumen || empty.resumen_ejecutivo;
+    checklist = checklist || empty.checklist_presentacion;
+  }
+
+  // DESCARGAR PLIEGO only when pliego_url/file exists — never fallback to source_url
+  const downloadPliego = (opp.pliego_url || opp.pliego_file || null) as string | null;
+
   return {
     opportunity: {
       ...opp,
@@ -353,11 +472,14 @@ export async function opportunityDetail(db: MiniDb, id: number) {
     pipeline: opp.pipeline,
     suppliers,
     rentabilidad: profit,
-    bid_scope: opp.bid_scope || null,
+    bid_scope: opp.bid_scope || analysis.extract?.bid_scope || null,
     quotes,
     purchases,
-    download_pliego: opp.pliego_url || opp.pliego_file || null,
+    download_pliego: downloadPliego,
     source_url: opp.source_url || opp.url,
+    pliego_extract: analysis.extract,
+    resumen_ejecutivo: resumen,
+    checklist_presentacion: checklist,
   };
 }
 

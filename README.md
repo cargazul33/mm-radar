@@ -38,7 +38,7 @@ Fórmula:
 ## Pantallas MVP
 
 1. **HOY** — capital operativo real, caja, por cobrar, comprometido, libre, metas, tareas, cuello de botella, alertas.
-2. **Oportunidades** — URL oficial + **DESCARGAR PLIEGO** (botón aparte de “fuente”).
+2. **Oportunidades** — URL oficial (fuente) + **DESCARGAR PLIEGO** (botón real solo si `pliego_url`/`pliego_file`). Detalle: **RESUMEN EJECUTIVO** + **CHECKLIST DE PRESENTACIÓN** desde extract determinístico del pliego (nunca inventa; campos faltantes = `NO VERIFICADO`).
 3. **Cotizaciones** — borradores; nunca = caja.
 4. **Caja** — ledger + fórmula.
 5. **Cobranzas** — estados + FIRMES vs COBRO_ESTIMADO.
@@ -81,7 +81,7 @@ Variables útiles:
 - `COMMERCE_DB` — SQLite de mm-ai-commerce (default `/workspace/mm-ai-commerce/data/mm_commerce.db`)
 - `PORT` — default `8787`
 
-API clave: `/api/hoy`, `/api/que-hago-hoy`, `/api/oportunidades`, `/api/cotizaciones`, `/api/caja`, `/api/cobranzas`, `/api/indicadores`, `/api/proyecciones`, `/api/bottleneck`, `/api/alertas`, `/api/import`, `/api/refresh`, `/api/policy`, `/api/backup`.
+API clave: `/api/hoy`, `/api/que-hago-hoy`, `/api/oportunidades`, `/api/oportunidades/:id/extract` (POST `pliego_text`), `/api/pliego/extract`, `/api/cotizaciones`, `/api/caja`, `/api/cobranzas`, `/api/indicadores`, `/api/proyecciones`, `/api/bottleneck`, `/api/alertas`, `/api/import`, `/api/refresh`, `/api/policy`, `/api/backup`.
 
 ## Deploy gratis (Cloudflare)
 
@@ -122,4 +122,4 @@ Secretos: solo en env / Cloudflare dashboard (no commitear `.dev.vars` ni `.env`
 npm test
 ```
 
-Cubre: score, fórmula de capital, guards anti-invención, hard-skip 16514, match exacto, rentabilidad.
+Cubre: score, fórmula de capital, guards anti-invención, hard-skip 16514, match exacto, rentabilidad, extract de pliego + checklist (sin inventar).

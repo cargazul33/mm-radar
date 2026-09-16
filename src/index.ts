@@ -1,5 +1,5 @@
 import { handleApi } from "./handlers.js";
-import { wrapD1, asMiniDb } from "./db.js";
+import { wrapD1, asMiniDb, ensureSchema } from "./db.js";
 
 export interface Env {
   DB: D1Database;
@@ -20,6 +20,7 @@ export default {
 
     if (url.pathname.startsWith("/api/")) {
       const db = asMiniDb(wrapD1(env.DB));
+      await ensureSchema(db);
       const res = await handleApi(request, db);
       if (res) return res;
       return new Response(JSON.stringify({ error: "not found" }), {

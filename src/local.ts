@@ -6,6 +6,7 @@ import initSqlJs, { type Database as SqlJsDb } from "sql.js";
 import { createRequire } from "node:module";
 import type { MiniDb, SqlValue } from "./db.js";
 import { handleApi } from "./handlers.js";
+import { ensureSchema } from "./db.js";
 
 const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
@@ -78,6 +79,8 @@ async function main() {
   }
   const schema = readFileSync(schemaPath, "utf8");
   sdb.exec(schema);
+  const dbBootstrap = wrapSqlJs(sdb, () => {});
+  await ensureSchema(dbBootstrap);
   let persistTimer: ReturnType<typeof setTimeout> | null = null;
   const persistNow = () => {
     mkdirSync(dirname(dbPath), { recursive: true });
