@@ -1,0 +1,20 @@
+{
+  "opportunities": [
+    {
+      "external_id": "DEMO-100",
+      "source": "MANUAL",
+      "title": "Ejemplo IT — sin precios inventados",
+      "organism": "DEMO",
+      "rubros": "informática",
+      "url": "https://example.com/demo",
+      "pliego_url": "https://example.com/demo-pliego.pdf",
+      "verification": "NO VERIFICADO",
+      "pipeline": "NUEVA"
+    },
+    {
+      "external_id": "16514",
+      "title": "Hard-skip test row",
+      "source": "CODINEU"
+    }
+  ]
+}

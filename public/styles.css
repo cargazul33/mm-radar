@@ -1,0 +1,113 @@
+:root {
+  --bg: #0f1419;
+  --panel: #1a2332;
+  --panel2: #243044;
+  --text: #e8eef7;
+  --muted: #8b9bb4;
+  --accent: #3b82f6;
+  --good: #22c55e;
+  --warn: #eab308;
+  --bad: #ef4444;
+  --border: #2d3a4f;
+  --radius: 12px;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.4;
+}
+a { color: var(--accent); }
+header.app {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(15,20,25,.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: .75rem 1rem;
+}
+header.app h1 { margin: 0; font-size: 1.1rem; letter-spacing: .02em; }
+header.app .sub { color: var(--muted); font-size: .75rem; }
+nav.tabs {
+  display: flex; gap: .4rem; overflow-x: auto; padding: .5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+}
+nav.tabs button {
+  flex: 0 0 auto;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .4rem .75rem;
+  font-size: .78rem;
+  cursor: pointer;
+}
+nav.tabs button.active { background: var(--accent); border-color: var(--accent); }
+main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
+.grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .9rem;
+}
+.card h3 { margin: 0 0 .35rem; font-size: .8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+.card .num { font-size: 1.45rem; font-weight: 700; }
+.progress {
+  height: 8px; background: var(--panel2); border-radius: 999px; overflow: hidden; margin-top: .5rem;
+}
+.progress > span { display: block; height: 100%; background: var(--good); }
+.badge {
+  display: inline-block; font-size: .68rem; padding: .15rem .45rem;
+  border-radius: 999px; background: var(--panel2); color: var(--muted);
+  border: 1px solid var(--border);
+}
+.badge.urgente { background: #3f1212; color: #fecaca; border-color: #7f1d1d; }
+.badge.alta { background: #3f2e08; color: #fde68a; border-color: #854d0e; }
+.badge.oportunidades { background: #0c2a4a; color: #bfdbfe; border-color: #1e3a8a; }
+.badge.PRIORITARIO, .badge.ALTO { color: #bbf7d0; }
+.badge.MEDIO { color: #fde68a; }
+.badge.BAJO { color: #fecaca; }
+.badge.nv { color: #fca5a5; border-color: #7f1d1d; }
+ul.tasks { list-style: none; padding: 0; margin: 0; }
+ul.tasks li {
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem; margin-bottom: .5rem;
+}
+ul.tasks li .action { font-weight: 600; }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+th, td { text-align: left; padding: .5rem .4rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+.row-actions a, .row-actions button {
+  margin-right: .35rem; font-size: .75rem;
+}
+button.btn, .btn {
+  background: var(--accent); color: white; border: none; border-radius: 8px;
+  padding: .55rem .9rem; cursor: pointer; font-size: .85rem;
+}
+button.btn.secondary { background: var(--panel2); border: 1px solid var(--border); }
+button.btn:disabled { opacity: .5; cursor: not-allowed; }
+form.stack { display: grid; gap: .55rem; }
+form.stack label { display: grid; gap: .2rem; font-size: .78rem; color: var(--muted); }
+input, select, textarea {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: .5rem .6rem; font-size: .9rem; width: 100%;
+}
+textarea { min-height: 80px; }
+.muted { color: var(--muted); font-size: .8rem; }
+.flash { padding: .6rem .8rem; border-radius: 8px; margin-bottom: .75rem; font-size: .85rem; }
+.flash.ok { background: #052e16; border: 1px solid #166534; }
+.flash.err { background: #450a0a; border: 1px solid #991b1b; }
+.hidden { display: none !important; }
+.score-bars { display: grid; gap: .35rem; }
+.score-bars .bar-row { display: grid; grid-template-columns: 110px 1fr 36px; gap: .4rem; align-items: center; font-size: .75rem; }
+.score-bars .track { height: 6px; background: var(--panel2); border-radius: 99px; overflow: hidden; }
+.score-bars .track > i { display: block; height: 100%; background: var(--accent); }
+.why { font-size: .75rem; color: var(--muted); margin: .2rem 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; align-items: center; }
+@media (min-width: 800px) {
+  header.app h1 { font-size: 1.25rem; }
+}

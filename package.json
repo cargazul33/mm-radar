@@ -1,0 +1,34 @@
+{
+  "name": "mm-radar",
+  "version": "1.0.0",
+  "description": "M&M RADAR — ops system for M&M Insumos Neuquén (Cloudflare Workers + D1)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/local-server.mjs",
+    "dev:cf": "wrangler dev",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "esbuild src/index.ts --bundle --format=esm --outfile=dist/worker.js --platform=neutral --conditions=worker",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 execute mm-radar-db --local --file=migrations/0001_init.sql",
+    "export:commerce": "node scripts/export-from-commerce.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "mm-radar",
+    "codineu",
+    "neuquen"
+  ],
+  "author": "M&M Insumos",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250317.0",
+    "@types/node": "^22.13.10",
+    "esbuild": "^0.25.1",
+    "sql.js": "^1.12.0",
+    "typescript": "^5.8.2",
+    "vitest": "^2.1.9",
+    "wrangler": "3.112.0"
+  }
+}
