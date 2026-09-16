@@ -1,108 +1,103 @@
 # M&M RADAR
 
-Sistema diario de operaciones para **M&M Insumos Neuquén**: qué cotizar, qué vence, dónde comprar, stock verificado?, capital, precio de venta, márgenes, días de capital, mejor ROI, cobranzas, capital libre, acciones de hoy y siguiente mejor acción.
+Sistema operativo diario para **M&M Insumos (Neuquén)**: oportunidades → cotizar → comprar → entregar → facturar → cobrar → reinvertir.
 
-**Stack (gratis):** Cloudflare Workers + Assets (Pages) + D1 · TypeScript · UI mobile-first en español.
+Meta aspiracional de referencia: ~$30–40M ARS ventas / ~$10M neto por mes. **No se afirma que esté lograda**; el progreso en HOY solo avanza con datos reales cargados.
 
-**Repo:** https://github.com/cargazul33/mm-radar
+Stack: **Cloudflare Pages + Workers + D1** (SQLite local para desarrollo/tests). UI mobile-first en español, vanilla (sin CRM pesado). Markup default **1.90**. Hard-skip permanente **CODINEU 16514**. Sin auto-buy / auto-bid / movimiento de dinero automático.
 
-## Reglas de negocio (no negociables)
+## Reglas de verdad
 
-- **Nunca inventar** oportunidades, precios, stock ni proveedores.
-- Todo hecho necesita `source_url` + `verified_at` cuando aplica.
-- Si falta evidencia → `NO VERIFICADO` / `STOCK_NO_VERIFICADO` / `PRECIO_NO_VERIFICADO`.
-- **MATCH EXACTO** solo si coinciden marca/modelo/especificación.
-- Compra / presentación / pago: **siempre aprobación humana** (nunca auto).
-- Precio default = **COSTO × 1.90** (configurable en `config` / `wrangler.toml`).
-- **Excluir CODINEU 16514** (hard-skip permanente).
-- Depriorizar: salud / policía / obra pesada.
-- Priorizar: IT / redes / oficina / librería / electro / herramientas / AA.
-- Metas display: ventas **$40M** / ganancia **$10M** ARS/mes (barras solo desde ledger real; ceros si vacío).
-- **Capital operativo real** = caja + CxC firmes − deudas − impuestos − compromisos compra.  
-  **Nunca** contar cotizaciones/oportunidades como dinero.
+- Nunca inventar oportunidades, proveedores, precios ni stock.
+- Labels: `STOCK_NO_VERIFICADO`, `PRECIO_NO_VERIFICADO`, `COBRO_ESTIMADO`.
+- `MATCH EXACTO` solo si está probado.
+- Toda fila externa: `source_url` + `verified_at` cuando aplica.
+- Cotizaciones **nunca** cuentan como caja.
+- Fórmula documentada:
 
-## Pipeline
+`CAPITAL OPERATIVO REAL = caja + CxC firmes − deudas − impuestos − compromisos`
 
-`DETECTADA` → `ANALISIS` → `BUSCANDO_PROVEEDOR` → `COTIZANDO` → `LISTA_PARA_PRESENTAR` → `PRESENTADA` → `OPS_GANADA` → `COMPRANDO` → `ENTREGANDO` → `FACTURANDO` → `COBRANDO` → `COBRADA` / `DESCARTADA` / `PERDIDA` / `SKIPPED_HARD`
+## Pantallas MVP
 
-## Módulos UI
+1. **HOY** — capital operativo real, caja, por cobrar, comprometido, libre, metas.
+2. **Qué hago hoy** — tareas ordenadas desde el estado real de la DB.
+3. **Oportunidades** — URL oficial + **DESCARGAR PLIEGO**.
+4. **Detalle** — ítems, score M&M 0–100 con porqués, pipeline, proveedores, rentabilidad, `bid_scope`.
+5. **Caja** — panel + fórmula.
+6. **Cobranzas** — listado y estados.
+7. **Alertas**.
+8. **Proyecciones** — etiquetadas **ESTIMACIÓN** (conservador / base / agresivo).
+9. **Cuello de botella** — texto.
 
-| Vista | Contenido |
-|-------|-----------|
-| HOY | Capital operativo, caja, por cobrar, urgentes, % meta |
-| Qué hago hoy | Tareas rankeadas (urgente / alta / oportunidades) |
-| Oportunidades | Lista + **DESCARGAR PLIEGO** + Score M&M 0–100 explicado |
-| Proveedores | Alta + match EXACTO / EQUIVALENTE / NO MATCH |
-| Rentabilidad | Ranking por eficiencia de capital |
-| Caja / Capital / Cobranzas / Alertas | Ledger y alertas &lt;72h / &lt;24h |
-| Indicadores | Solo datos reales de DB |
-| Proyecciones | Escenarios etiquetados **ESTIMACIÓN** |
+## Score M&M
 
-## Score M&M (0–100)
+| Componente | Max |
+|---|---|
+| Encaje | 20 |
+| Margen | 20 |
+| Abastecimiento | 15 |
+| Capital | 10 |
+| Cobro | 15 |
+| Probabilidad | 10 |
+| Historial | 10 |
 
-Encaje 0–20 · margen 0–20 · abastecimiento 0–15 · capital 0–10 · cobro 0–15 · probabilidad 0–10 · historial 0–10.
+Bandas: **ATACAR / COTIZAR / REVISAR / DESCARTAR**.
 
-Bandas: **ATACAR** 75–100 · **COTIZAR** 55–74 · **REVISAR** 35–54 · **DESCARTAR** 0–34.
-
-## Arranque local (sin cuenta Cloudflare)
+## Correr en local
 
 ```bash
-cd mm-radar
+cd /workspace/mm-radar   # o el clone
 npm install
+npm run seed:commerce    # importa mm-ai-commerce si existe; si no, DB vacía (sin fake)
 npm test
-npm run export:commerce   # si existe /workspace/mm-ai-commerce
-npm run dev
-# → http://127.0.0.1:8787
+npm run dev              # http://127.0.0.1:8787
 ```
 
-Importar datos reales:
+Variables útiles:
+
+- `MM_RADAR_DB` — ruta SQLite local (default `data/local.sqlite`)
+- `COMMERCE_DB` — SQLite de mm-ai-commerce (default `/workspace/mm-ai-commerce/data/mm_commerce.db`)
+- `PORT` — default `8787`
+
+API clave: `/api/hoy`, `/api/que-hago-hoy`, `/api/oportunidades`, `/api/caja`, `/api/cobranzas`, `/api/alertas`, `/api/proyecciones`, `/api/bottleneck`, `/api/import`, `/api/refresh`, `/api/policy`.
+
+## Deploy gratis (Cloudflare)
+
+1. Crear proyecto Pages/Workers con este repo.
+2. Crear D1 `mm-radar-db` y pegar el `database_id` en `wrangler.toml`.
+3. Aplicar migración:
 
 ```bash
-curl -s -X POST http://127.0.0.1:8787/api/import \
-  -H 'content-type: application/json' \
-  --data-binary @import-out/opportunities-export.json
+npx wrangler d1 execute mm-radar-db --file=migrations/0001_init.sql
 ```
-
-DB local: `data/local.sqlite` (sql.js, mismo schema que D1).
-
-## Deploy Cloudflare (Mariano debe hacer login)
-
-1. Login Wrangler (una vez, en tu máquina / cuenta Cloudflare):
-
-```bash
-npx wrangler login
-```
-
-2. Crear D1 y pegar el `database_id` en `wrangler.toml`:
-
-```bash
-npx wrangler d1 create mm-radar-db
-# editar wrangler.toml → [[d1_databases]].database_id
-npx wrangler d1 execute mm-radar-db --remote --file=migrations/0001_init.sql
-```
-
-3. Variables (ya en `wrangler.toml` `[vars]`):
-
-- `MARKUP_DEFAULT=1.90`
-- `META_VENTAS_MENSUAL=40000000`
-- `META_GANANCIA_MENSUAL=10000000`
-- `HARD_SKIP_CODINEU=16514`
-
-**No subir secretos al git.** Usar `wrangler secret put …` si agregás auth.
 
 4. Deploy:
 
 ```bash
-npm run deploy
-# o: npx wrangler deploy
+npx wrangler deploy
+# o Pages: npx wrangler pages deploy public --project-name=mm-radar
 ```
 
-5. Preview local con D1:
+5. (Opcional) importar JSON real:
 
 ```bash
-npm run db:migrate:local
-npm run dev:cf
+curl -X POST https://<tu-dominio>/api/import -H 'content-type: application/json' --data @import-out/import.json
 ```
+
+Secretos: solo en env / Cloudflare dashboard (no commitear `.dev.vars` ni `.env`).
+
+## Acciones que requieren a Mariano
+
+Únicas intervenciones humanas necesarias:
+
+1. **Login Cloudflare** (cuenta free) y vincular el proyecto a `cargazul33/mm-radar`.
+2. **Crear D1** `mm-radar-db` y actualizar `database_id` en `wrangler.toml`.
+3. **Deploy** (`wrangler login` + `wrangler deploy` / Pages connect).
+4. **Secrets/vars** en el dashboard si más adelante hay tokens de portales (hoy no hay secrets obligatorios).
+5. **Cargar caja / cobranzas / ventas reales** (la app no inventa números de capital).
+6. **Decisiones de compra/oferta** — la app nunca compra ni puja sola.
+
+Todo lo demás (código, schema, UI, tests, seed desde commerce, push a GitHub) lo hace el agente en este box.
 
 ## Tests
 
@@ -110,13 +105,4 @@ npm run dev:cf
 npm test
 ```
 
-Cubre: bandas de score, fórmula de capital, hard-skip 16514, reglas de match exacto, política no-inventar.
-
-## Backup
-
-- `GET /api/backup/json`
-- `GET /api/backup/csv?table=opportunities`
-
-## Schema D1 (resumen)
-
-`opportunities` (+ `pliego_url`, `source_url`) · `opportunity_items` / `items` · `suppliers` · `quotes` · `operations` (vista) · `purchases` · `deliveries` · `invoices` · `collections` / `receivables` · `cash_ledger` · `alerts` · `config` / `settings` · `capital_snapshot` · `ventas_mes`.
+Cubre: score, fórmula de caja, guards anti-invención, hard-skip 16514, match exacto, rentabilidad.

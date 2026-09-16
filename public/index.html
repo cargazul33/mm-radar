@@ -2,17 +2,131 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>M&M RADAR — Ops Neuquén</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>M&M RADAR</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header class="app">
-    <h1>M&M RADAR</h1>
-    <div class="sub">M&M Insumos Neuquén · sin auto-buy / auto-present / auto-pay · datos NO VERIFICADO si faltan</div>
+  <header class="top">
+    <h1>M&M RADAR · Neuquén</h1>
+    <div class="sub">Oportunidades → cotizar → comprar → entregar → facturar → cobrar · sin inventar datos</div>
   </header>
-  <nav class="tabs" id="tabs"></nav>
-  <main id="app"><p class="muted">Cargando…</p></main>
-  <script src="/app.js" type="module"></script>
+  <nav class="nav">
+    <button data-view="hoy" class="active">HOY</button>
+    <button data-view="ops">Oportunidades</button>
+    <button data-view="caja">Caja</button>
+    <button data-view="cob">Cobranzas</button>
+    <button data-view="nueva">+ Opp</button>
+    <button data-view="detalle" class="hidden">Detalle</button>
+  </nav>
+  <main>
+    <section id="view-hoy" class="view">
+      <div class="grid">
+        <div class="card"><div class="muted">Capital operativo real</div><div class="kpi" id="kpi-capital">—</div></div>
+        <div class="card"><div class="muted">Caja</div><div class="kpi" id="kpi-caja">—</div></div>
+        <div class="card"><div class="muted">Por cobrar (firmes)</div><div class="kpi" id="kpi-cxc">—</div></div>
+        <div class="card"><div class="muted">Comprometido</div><div class="kpi" id="kpi-comp">—</div></div>
+        <div class="card"><div class="muted">Libre</div><div class="kpi" id="kpi-libre">—</div></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <h3>Metas aspiracionales (progreso solo con datos reales)</h3>
+        <div class="muted">Ventas $40M / mes</div>
+        <div id="meta-ventas-label" class="muted"></div>
+        <div class="progress"><span id="bar-ventas"></span></div>
+        <div class="muted" style="margin-top:8px">Ganancia $10M / mes</div>
+        <div id="meta-ganancia-label" class="muted"></div>
+        <div class="progress"><span id="bar-ganancia"></span></div>
+        <div class="warnbox" id="meta-note"></div>
+        <div class="muted" id="formula"></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Qué hago hoy</h3>
+          <button class="ghost btn" id="btn-refresh">Recalcular</button>
+        </div>
+        <div class="list" id="task-list"></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <h3>Cuello de botella</h3>
+        <div id="bottleneck-text"></div>
+        <ul id="bottleneck-sec"></ul>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <h3>Proyecciones · ESTIMACIÓN</h3>
+        <div id="proy-list"></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <h3>Alertas</h3>
+        <div class="list" id="alert-list"></div>
+      </div>
+    </section>
+
+    <section id="view-ops" class="view hidden">
+      <div class="card"><h3>Oportunidades</h3><div class="list" id="ops-list"></div></div>
+    </section>
+
+    <section id="view-detalle" class="view hidden">
+      <div id="detalle"></div>
+    </section>
+
+    <section id="view-caja" class="view hidden">
+      <div class="card">
+        <h3>Caja / Capital</h3>
+        <div class="muted" id="caja-formula"></div>
+        <div id="caja-vals"></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <h3>Movimiento manual</h3>
+        <form id="form-caja">
+          <label>Tipo</label>
+          <select name="tipo" required>
+            <option value="INGRESO">INGRESO</option>
+            <option value="EGRESO">EGRESO</option>
+            <option value="AJUSTE">AJUSTE</option>
+          </select>
+          <label>Monto ARS</label>
+          <input name="amount" type="number" step="0.01" required />
+          <label>Concepto</label>
+          <input name="concept" placeholder="ej. cobro factura / compra stock" />
+          <button class="primary" type="submit">Registrar</button>
+        </form>
+      </div>
+      <div class="card" style="margin-top:10px"><h3>Ledger</h3><div class="list" id="caja-ledger"></div></div>
+    </section>
+
+    <section id="view-cob" class="view hidden">
+      <div class="card"><h3>Cobranzas</h3><div class="list" id="cob-list"></div></div>
+    </section>
+
+    <section id="view-nueva" class="view hidden">
+      <div class="card">
+        <h3>Agregar oportunidad (URL oficial obligatoria)</h3>
+        <form id="form-opp">
+          <label>Título</label>
+          <input name="title" required />
+          <label>URL oficial (source_url)</label>
+          <input name="source_url" type="url" required placeholder="https://..." />
+          <label>ID externo (opcional)</label>
+          <input name="external_id" placeholder="ej. 16813" />
+          <label>Organismo</label>
+          <input name="organism" />
+          <label>Rubros</label>
+          <input name="rubros" />
+          <label>Cierre</label>
+          <input name="cierre_at" placeholder="21/09/2026 10:00 ART" />
+          <label>URL pliego (descarga directa si hay)</label>
+          <input name="pliego_url" type="url" />
+          <label>bid_scope</label>
+          <input name="bid_scope" placeholder="TOTAL_REQUIRED / PARCIAL / ..." />
+          <label>Notas</label>
+          <textarea name="notes" rows="3"></textarea>
+          <button class="primary" type="submit">Guardar</button>
+          <div class="muted" id="form-msg"></div>
+        </form>
+      </div>
+    </section>
+    <p class="footer-note">Hard-skip CODINEU 16514 · markup default 1.90 · sin auto-buy/auto-bid · labels STOCK_NO_VERIFICADO / PRECIO_NO_VERIFICADO / COBRO_ESTIMADO</p>
+  </main>
+  <script src="/app.js"></script>
 </body>
 </html>

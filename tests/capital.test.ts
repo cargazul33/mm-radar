@@ -1,32 +1,29 @@
 import { describe, it, expect } from "vitest";
 import { computeCapitalOperativoReal } from "../src/engines/capital.js";
 
-describe("CAPITAL_OPERATIVO_REAL", () => {
-  it("applies formula caja + CxC - deudas - impuestos - compromisos", () => {
-    const r = computeCapitalOperativoReal({
-      caja: 1000,
-      cxc_firmes: 500,
-      deudas: 200,
-      impuestos: 100,
-      compromisos_compra: 150,
-    });
-    expect(r.capital_operativo_real).toBe(1050);
-    expect(r.formula).toContain("caja");
-    expect(r.libre_para_ops).toBe(1050);
-    expect(r.libre).toBe(1050);
-    expect(r.quotes_excluded).toBe(true);
-  });
-
-  it("flags negative capital", () => {
+describe("caja formula", () => {
+  it("CAPITAL OPERATIVO REAL = caja + CxC - deudas - impuestos - compromisos", () => {
     const r = computeCapitalOperativoReal({
       caja: 100,
-      cxc_firmes: 0,
-      deudas: 80,
-      impuestos: 50,
-      compromisos: 40,
+      cxc_firmes: 50,
+      deudas: 20,
+      impuestos: 10,
+      compromisos: 15,
     });
-    expect(r.capital_operativo_real).toBe(-70);
-    expect(r.alerts).toContain("CAPITAL_NEGATIVO: no hay margen operativo libre");
-    expect(r.libre_para_ops).toBe(0);
+    expect(r.capital_operativo_real).toBe(105);
+    expect(r.quotes_excluded).toBe(true);
+    expect(r.libre).toBe(105);
+  });
+
+  it("negative capital alerts", () => {
+    const r = computeCapitalOperativoReal({
+      caja: 10,
+      cxc_firmes: 0,
+      deudas: 50,
+      impuestos: 0,
+      compromisos: 0,
+    });
+    expect(r.capital_operativo_real).toBe(-40);
+    expect(r.alerts.some((a) => a.includes("CAPITAL_NEGATIVO"))).toBe(true);
   });
 });

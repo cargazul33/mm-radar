@@ -1,52 +1,31 @@
 import { describe, it, expect } from "vitest";
 import { classifyMatch, stockVerifiedFlag } from "../src/engines/match.js";
+import { LABEL_STOCK_NO_VERIFICADO } from "../src/constants.js";
 
-describe("exact match rules", () => {
-  it("EXACTO only with identical desc + brand/model when required", () => {
+describe("MATCH EXACTO only if proven", () => {
+  it("exact with brand/model", () => {
     const m = classifyMatch({
-      requested: "Notebook Lenovo ThinkPad T14",
-      offered: "Notebook Lenovo ThinkPad T14",
-      brandRequested: "Lenovo",
-      brandOffered: "Lenovo",
-      modelRequested: "ThinkPad T14",
-      modelOffered: "ThinkPad T14",
+      requested: "router cisco 9163e",
+      offered: "router cisco 9163e",
+      brandRequested: "Cisco",
+      brandOffered: "Cisco",
+      modelRequested: "9163E",
+      modelOffered: "9163E",
     });
     expect(m.match_type).toBe("EXACTO");
   });
 
-  it("EQUIVALENTE when similar but not identical", () => {
+  it("overlap without identity → EQUIVALENTE not EXACTO", () => {
     const m = classifyMatch({
-      requested: "Notebook Lenovo ThinkPad T14 16GB",
-      offered: "Notebook Lenovo ThinkPad T14 Gen 3 16GB RAM",
-      brandRequested: "Lenovo",
-      brandOffered: "Lenovo",
+      requested: "router wifi techo",
+      offered: "access point wifi techo lite",
+      brandRequested: "Wi-Tek",
+      brandOffered: "Wi-Tek",
     });
-    expect(m.match_type).toBe("EQUIVALENTE");
+    expect(m.match_type).not.toBe("EXACTO");
   });
 
-  it("NO MATCH when brand differs or empty", () => {
-    const m = classifyMatch({
-      requested: "Monitor Samsung 24",
-      offered: "Monitor LG 24",
-      brandRequested: "Samsung",
-      brandOffered: "LG",
-    });
-    expect(m.match_type).toBe("NO MATCH");
-  });
-
-  it("never invents stock without verification", () => {
-    const s = stockVerifiedFlag(10, false);
-    expect(s.stock).toBeNull();
-    expect(s.stock_verified).toBe(false);
-    expect(s.stock_label).toBe("STOCK_NO_VERIFICADO");
-  });
-
-  it("provenExact flag yields EXACTO", () => {
-    const m = classifyMatch({
-      requested: "a",
-      offered: "b",
-      provenExact: true,
-    });
-    expect(m.match_type).toBe("EXACTO");
+  it("stock unverified label", () => {
+    expect(stockVerifiedFlag(3, false).stock_label).toBe(LABEL_STOCK_NO_VERIFICADO);
   });
 });

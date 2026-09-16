@@ -73,8 +73,7 @@ export function sanitizeOpportunityDisplay(opp: Record<string, unknown>): Record
   for (const k of numericKeys) {
     if (out[k] == null || out[k] === "") {
       out[k] = null;
-      out[`${k}_label`] = LABEL_NO_VERIFICADO;
-      out[`${k}_precio_label`] = LABEL_PRECIO_NO_VERIFICADO;
+      out[`${k}_label`] = LABEL_PRECIO_NO_VERIFICADO;
     }
   }
   if (!out.stock_verified) out.stock_label = LABEL_STOCK_NO_VERIFICADO;

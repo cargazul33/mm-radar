@@ -10,3 +10,4 @@ data/local.sqlite
 .env
 .env.local
 import-out/*.json
+data/*.sqlite
