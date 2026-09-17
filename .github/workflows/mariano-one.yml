@@ -7,13 +7,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'mariano-one/**'
       - '.github/workflows/mariano-one.yml'
+      - 'mariano-one/scripts/**'
+      - 'mariano-one/index.html'
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 env:
   PYTHONUNBUFFERED: '1'
@@ -41,18 +40,3 @@ jobs:
             git commit -m "chore: update Mariano One radar"
             git push
           fi
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: mariano-one
-
-  deploy:
-    needs: scan
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
