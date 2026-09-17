@@ -1,0 +1,58 @@
+name: Mariano One Radar
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'mariano-one/**'
+      - '.github/workflows/mariano-one.yml'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install scanner dependencies
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+      - name: Scan public official sources
+        run: python mariano-one/scripts/scan_public.py
+      - name: Persist verified radar data
+        run: |
+          if git diff --quiet -- mariano-one/data/opportunities.json; then
+            echo "No data changes"
+          else
+            git config user.name "mariano-one-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add mariano-one/data/opportunities.json
+            git commit -m "chore: update Mariano One radar"
+            git push
+          fi
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: mariano-one
+
+  deploy:
+    needs: scan
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
